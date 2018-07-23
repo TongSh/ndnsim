@@ -100,7 +100,7 @@ int main (int argc, char *argv[])
 	//Provider
 	//node 2
  	ndn::AppHelper producerHelper("ns3::ndn::Producer");
- 	producerHelper.SetPrefix("/nankai");
+ 	producerHelper.SetPrefix("/");
  	producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
  	producerHelper.Install(c.Get(2));
 
