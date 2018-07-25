@@ -192,6 +192,8 @@ Forwarder::onIncomingInterest(Face& inFace, const Interest& interest)
 
   // PIT insert
   shared_ptr<pit::Entry> pitEntry = m_pit.insert(interest).first;
+  // update the hit time during back off           tong
+  pitEntry->setHit(pitEntry->getHit()+1);
 
   // detect duplicate Nonce in PIT entry
   int dnw = fw::findDuplicateNonce(*pitEntry, interest.getNonce(), inFace);
@@ -312,7 +314,9 @@ Forwarder::onOutgoingInterest(const shared_ptr<pit::Entry>& pitEntry, Face& outF
 {
   NFD_LOG_DEBUG("onOutgoingInterest face=" << outFace.getId() <<
                 " interest=" << pitEntry->getName());
-
+  // some other nodes has forwarded during the back off    tong
+  if(pitEntry->getHit() > 1)
+	  return;
   // insert out-record
   pitEntry->insertOrUpdateOutRecord(outFace, interest);
 
@@ -780,7 +784,7 @@ Forwarder::onDelayInterest(const shared_ptr<pit::Entry>& pitEntry
 	if(Ndelay == -1)
 		return;
 
-	ns3::Time delay = ns3::NanoSeconds(Ndelay+4);
+	ns3::Time delay = ns3::MicroSeconds(Ndelay);
 	auto outFacePtr = &outFace;
 	auto interestPtr = make_shared<Interest>(interest);
 	ns3::Simulator::Schedule(delay, &Forwarder::ScheduleOnOutgoingInterest, this, pitEntry, outFacePtr, interestPtr);

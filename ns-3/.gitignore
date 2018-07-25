@@ -88,3 +88,8 @@ massif.*
 configure
 toggle
 Result/
+ConsumerRecord/
+HopRecord/
+ReceiveRecord/
+SendRecord/
+SizeRsult/

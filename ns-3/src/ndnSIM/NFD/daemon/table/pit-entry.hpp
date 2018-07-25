@@ -214,6 +214,17 @@ public: // out-record
   void
   deleteOutRecord(const Face& face);
 
+  /** \brief record the pitEntry hit times during back off
+   * tong
+   */
+  uint32_t getHit() const {
+	return m_hit;
+  }
+
+  void setHit(uint32_t hit) {
+	m_hit = hit;
+  }
+
 public:
   /** \brief unsatisfy timer
    *
@@ -240,6 +251,8 @@ private:
   shared_ptr<const Interest> m_interest;
   InRecordCollection m_inRecords;
   OutRecordCollection m_outRecords;
+
+  uint32_t m_hit;
 
   name_tree::Entry* m_nameTreeEntry;
 
