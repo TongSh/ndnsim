@@ -39,6 +39,15 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/member.hpp>
 
+//-----------------------------------------------------------------------------
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <map>
+using namespace std;
+//-----------------------------------------------------------------------------
+
+
 namespace ns3 {
 namespace ndn {
 
@@ -95,6 +104,17 @@ public:
 public:
   typedef void (*LastRetransmittedInterestDataDelayCallback)(Ptr<App> app, uint32_t seqno, Time delay, int32_t hopCount);
   typedef void (*FirstInterestDataDelayCallback)(Ptr<App> app, uint32_t seqno, Time delay, uint32_t retxCount, int32_t hopCount);
+  //******************************************
+  void
+  SetPrefix(string pre);
+
+  /** generate a random Name
+   * store the name in a map,using seq as a key value
+   * Tong
+   */
+  Name
+  GetRandPrefix(int seq);
+  //******************************************
 
 protected:
   // from App
@@ -145,6 +165,10 @@ protected:
   Time m_offTime;          ///< \brief Time interval between packets
   Name m_interestName;     ///< \brief NDN Name of the Interest (use Name)
   Time m_interestLifeTime; ///< \brief LifeTime for interest packet
+
+  bool rtx;
+
+  map<int,Name> m_seqName;///< @brief record the relation between name and sequence number
 
   /// @cond include_hidden
   /**

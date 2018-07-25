@@ -27,6 +27,48 @@
 
 #include "ns3/nstime.h"
 #include "ns3/ptr.h"
+#include "../ndn-cxx/src/tag.hpp"
+#include <fstream>
+
+namespace tong{
+	template<typename T, int TypeId>
+	class SimpleTag2 : public ndn::Tag
+	{
+	public:
+	  static constexpr int
+	  getTypeId()
+	  {
+		return TypeId;
+	  }
+
+	  /** \brief explicitly convertible from T
+	   */
+	  explicit
+	  SimpleTag2(const T& value)
+		: m_value(value)
+	  {
+	  }
+
+	  /** \brief implicitly convertible to T
+	   *  \return a copy of the enclosed value
+	   */
+	  operator T() const
+	  {
+		return m_value;
+	  }
+
+	  /** \return the enclosed value
+	   */
+	  const T&
+	  get() const
+	  {
+		return m_value;
+	  }
+
+	private:
+	  T m_value;
+	};
+}
 
 namespace ns3 {
 namespace ndn {
@@ -42,6 +84,7 @@ namespace ndn {
  */
 class Producer : public App {
 public:
+//	typedef ndn::SimpleTag2<uint64_t, 0x60000000> HopCountTag;
   static TypeId
   GetTypeId(void);
 

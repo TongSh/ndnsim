@@ -328,6 +328,25 @@ public:
 	m_node = node;
   }
 
+  int
+  round_double(double number);
+
+  int
+  calInterestDelay(const Interest& interest);
+
+  void
+  onDelayInterest(const shared_ptr<pit::Entry>& pitEntry
+  		  , Face& outFace
+  		  , const Interest& interest);
+
+  void
+  ScheduleOnOutgoingInterest(const shared_ptr<pit::Entry>& pitEntry
+  		  , Face* outFace
+  		  , shared_ptr<Interest> interest);
+
+  void
+  CountRecord();
+
 private:
   ForwarderCounters m_counters;
 

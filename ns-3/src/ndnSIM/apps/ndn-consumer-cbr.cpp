@@ -75,20 +75,37 @@ ConsumerCbr::~ConsumerCbr()
 {
 }
 
+//std::string
+//ConsumerCbr::GetRandPrefix(int index) const
+//{
+//	std::string prefix1 = "/Info0_0";
+//	std::string prefix2 = "/Info0_1";
+//	std::string prefix3 = "/Info0_2";
+//	std::string prefix4 = "/Info1_0";
+//	std::string prefix5 = "/Info1_1";
+//	std::string prefix6 = "/Info1_2";
+//	std::string prefixs[6]  = {prefix1,prefix2,prefix3,prefix4,prefix5,prefix6};
+//	return prefixs[index % 6]+"/"+std::to_string(GetNode()->GetId());
+//}
+
 void
 ConsumerCbr::ScheduleNextPacket()
 {
-  // double mean = 8.0 * m_payloadSize / m_desiredRate.GetBitRate ();
-  // std::cout << "next: " << Simulator::Now().ToDouble(Time::S) + mean << "s\n";
+//	string prefix= "/nankai" + GetRandPrefix(m_seq);
+//	SetPrefix(prefix);
+	std::string csFile = "ConsumerRecord/consumer_" + std::to_string(m_node->GetId()) +"_Node.csv";
+	std::ofstream CsOut(csFile,std::ofstream::app);
+	CsOut<< ns3::Simulator::Now().GetNanoSeconds()<<","<<m_seq<<"\n";
+	CsOut.close();
 
-  if (m_firstTime) {
-    m_sendEvent = Simulator::Schedule(Seconds(0.0), &Consumer::SendPacket, this);
-    m_firstTime = false;
-  }
-  else if (!m_sendEvent.IsRunning())
-    m_sendEvent = Simulator::Schedule((m_random == 0) ? Seconds(1.0 / m_frequency)
-                                                      : Seconds(m_random->GetValue()),
-                                      &Consumer::SendPacket, this);
+	if (m_firstTime) {
+	    m_sendEvent = Simulator::Schedule(Seconds(0.0), &Consumer::SendPacket, this);
+	    m_firstTime = false;
+	}
+	else if (!m_sendEvent.IsRunning())
+		m_sendEvent = Simulator::Schedule((m_random == 0) ? Seconds(1.0 / m_frequency)
+	                                                      : Seconds(m_random->GetValue()),
+	                                      &Consumer::SendPacket, this);
 }
 
 void

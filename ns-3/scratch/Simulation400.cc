@@ -83,28 +83,28 @@ int main (int argc, char *argv[])
 
 	//node 64
 	ndn::AppHelper consumerHelper1("ns3::ndn::ConsumerCbr");
-	consumerHelper1.SetAttribute("Frequency", StringValue("0.1"));  //1 interests a second
+	consumerHelper1.SetAttribute("Frequency", StringValue("1"));  //1 interests a second
 	ApplicationContainer consumerApp1 = consumerHelper1.Install(c.Get(64));
 	consumerApp1.Start(Seconds(68));
 	consumerApp1.Stop(Seconds(1283));
 
   	//node 124
 	ndn::AppHelper consumerHelper2("ns3::ndn::ConsumerCbr");
-	consumerHelper2.SetAttribute("Frequency", StringValue("0.1"));  //1 interests a second
+	consumerHelper2.SetAttribute("Frequency", StringValue("1"));  //1 interests a second
 	ApplicationContainer consumerApp2 = consumerHelper2.Install(c.Get(124));
 	consumerApp2.Start(Seconds(126));
 	consumerApp2.Stop(Seconds(1177));
 
 	//node 188
 	ndn::AppHelper consumerHelper3("ns3::ndn::ConsumerCbr");
-	consumerHelper3.SetAttribute("Frequency", StringValue("0.1"));  //1 interests a second
+	consumerHelper3.SetAttribute("Frequency", StringValue("1"));  //1 interests a second
 	ApplicationContainer consumerApp3 = consumerHelper3.Install(c.Get(188));
 	consumerApp3.Start(Seconds(185));
 	consumerApp3.Stop(Seconds(1504));
 
 	//node 239
 	ndn::AppHelper consumerHelper4("ns3::ndn::ConsumerCbr");
-	consumerHelper4.SetAttribute("Frequency", StringValue("0.1"));  //1 interests a second
+	consumerHelper4.SetAttribute("Frequency", StringValue("1"));  //1 interests a second
 	ApplicationContainer consumerApp4 = consumerHelper4.Install(c.Get(239));
 	consumerApp4.Start(Seconds(229));
 	consumerApp4.Stop(Seconds(1633));
@@ -112,76 +112,76 @@ int main (int argc, char *argv[])
 	//Provider
 	//------------------------------------------------------------------------------------------
 	//node 400
- 	ndn::AppHelper producerHelper("ns3::ndn::Producer");
- 	producerHelper.SetPrefix("/");
- 	producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper.Install(c.Get(400));
+	ndn::AppHelper producerHelper("ns3::ndn::Producer");
+	producerHelper.SetPrefix("/nankai/Info_0");
+	producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper.Install(c.Get(400));
 
- 	//node 401
- 	ndn::AppHelper producerHelper2("ns3::ndn::Producer");
- 	producerHelper2.SetPrefix("/");
- 	producerHelper2.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper2.Install(c.Get(401));
+	//node 401
+	ndn::AppHelper producerHelper2("ns3::ndn::Producer");
+	producerHelper2.SetPrefix("/nankai/Info_1");
+	producerHelper2.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper2.Install(c.Get(401));
 
- 	//node 402
- 	ndn::AppHelper producerHelper3("ns3::ndn::Producer");
- 	producerHelper3.SetPrefix("/");
- 	producerHelper3.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper3.Install(c.Get(402));
+	//node 402
+	ndn::AppHelper producerHelper3("ns3::ndn::Producer");
+	producerHelper3.SetPrefix("/nankai/Info_2");
+	producerHelper3.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper3.Install(c.Get(402));
 
- 	//node 403
- 	ndn::AppHelper producerHelper4("ns3::ndn::Producer");
- 	producerHelper4.SetPrefix("/");
- 	producerHelper4.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper4.Install(c.Get(403));
+	//node 403
+	ndn::AppHelper producerHelper4("ns3::ndn::Producer");
+	producerHelper4.SetPrefix("/nankai/Info_3");
+	producerHelper4.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper4.Install(c.Get(403));
 
- 	//node 404
- 	ndn::AppHelper producerHelper5("ns3::ndn::Producer");
- 	producerHelper5.SetPrefix("/");
- 	producerHelper5.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper5.Install(c.Get(404));
+	//node 404
+	ndn::AppHelper producerHelper5("ns3::ndn::Producer");
+	producerHelper5.SetPrefix("/nankai/Info_4");
+	producerHelper5.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper5.Install(c.Get(404));
 
- 	//node 405
- 	ndn::AppHelper producerHelper6("ns3::ndn::Producer");
- 	producerHelper6.SetPrefix("/");
- 	producerHelper6.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper6.Install(c.Get(405));
+	//node 405
+	ndn::AppHelper producerHelper6("ns3::ndn::Producer");
+	producerHelper6.SetPrefix("/nankai/Info_5");
+	producerHelper6.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper6.Install(c.Get(405));
 
- 	//node 406
- 	ndn::AppHelper producerHelper7("ns3::ndn::Producer");
- 	producerHelper7.SetPrefix("/");
- 	producerHelper7.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper7.Install(c.Get(406));
+	//node 406
+	ndn::AppHelper producerHelper7("ns3::ndn::Producer");
+	producerHelper7.SetPrefix("/nankai/Info_3");
+	producerHelper7.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper7.Install(c.Get(406));
 
- 	//node 407
- 	ndn::AppHelper producerHelper8("ns3::ndn::Producer");
- 	producerHelper8.SetPrefix("/");
- 	producerHelper8.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper8.Install(c.Get(407));
+	//node 407
+	ndn::AppHelper producerHelper8("ns3::ndn::Producer");
+	producerHelper8.SetPrefix("/nankai/Info_4");
+	producerHelper8.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper8.Install(c.Get(407));
 
- 	//node 408
- 	ndn::AppHelper producerHelper9("ns3::ndn::Producer");
- 	producerHelper9.SetPrefix("/");
- 	producerHelper9.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper9.Install(c.Get(408));
+	//node 408
+	ndn::AppHelper producerHelper9("ns3::ndn::Producer");
+	producerHelper9.SetPrefix("/nankai/Info_5");
+	producerHelper9.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper9.Install(c.Get(408));
 
- 	//node 409
- 	ndn::AppHelper producerHelper10("ns3::ndn::Producer");
- 	producerHelper10.SetPrefix("/");
- 	producerHelper10.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper10.Install(c.Get(409));
+	//node 409
+	ndn::AppHelper producerHelper10("ns3::ndn::Producer");
+	producerHelper10.SetPrefix("/nankai/Info_0");
+	producerHelper10.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper10.Install(c.Get(409));
 
- 	//node 410
- 	ndn::AppHelper producerHelper11("ns3::ndn::Producer");
- 	producerHelper11.SetPrefix("/");
- 	producerHelper11.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper11.Install(c.Get(410));
+	//node 410
+	ndn::AppHelper producerHelper11("ns3::ndn::Producer");
+	producerHelper11.SetPrefix("/nankai/Info_1");
+	producerHelper11.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper11.Install(c.Get(410));
 
- 	//node 411
- 	ndn::AppHelper producerHelper12("ns3::ndn::Producer");
- 	producerHelper12.SetPrefix("/");
- 	producerHelper12.SetAttribute("PayloadSize", StringValue("1024"));
- 	producerHelper12.Install(c.Get(411));
+	//node 411
+	ndn::AppHelper producerHelper12("ns3::ndn::Producer");
+	producerHelper12.SetPrefix("/nankai/Info_2");
+	producerHelper12.SetAttribute("PayloadSize", StringValue("1024"));
+	producerHelper12.Install(c.Get(411));
 
 
 	//Tracer

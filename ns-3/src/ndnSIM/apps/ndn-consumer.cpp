@@ -54,7 +54,7 @@ Consumer::GetTypeId(void)
       .AddAttribute("StartSeq", "Initial sequence number", IntegerValue(0),
                     MakeIntegerAccessor(&Consumer::m_seq), MakeIntegerChecker<int32_t>())
 
-      .AddAttribute("Prefix", "Name of the Interest", StringValue("/"),
+      .AddAttribute("Prefix", "Name of the Interest", StringValue("/nankai"),
                     MakeNameAccessor(&Consumer::m_interestName), MakeNameChecker())
       .AddAttribute("LifeTime", "LifeTime for interest packet", StringValue("2s"),
                     MakeTimeAccessor(&Consumer::m_interestLifeTime), MakeTimeChecker())
@@ -82,6 +82,7 @@ Consumer::Consumer()
   : m_rand(CreateObject<UniformRandomVariable>())
   , m_seq(0)
   , m_seqMax(0) // don't request anything
+	,rtx(false)
 {
   NS_LOG_FUNCTION_NOARGS();
 
@@ -165,9 +166,14 @@ Consumer::SendPacket()
 
   uint32_t seq = std::numeric_limits<uint32_t>::max(); // invalid
 
+  /**if need retx,don't do schedule
+   * Tong
+   */
+  bool isRetx = false;
   while (m_retxSeqs.size()) {
     seq = *m_retxSeqs.begin();
     m_retxSeqs.erase(m_retxSeqs.begin());
+    isRetx = true;
     break;
   }
 
@@ -181,30 +187,47 @@ Consumer::SendPacket()
     seq = m_seq++;
   }
 
-  //
-  std::string pre = "/Info_0";
-  Name nameWithSequence = Name(pre);
+  // get name based on seq
+//  shared_ptr<Name> nameWithSequence = make_shared<Name>(GetRandPrefix(seq));
+  Name nameWithSequence = GetRandPrefix(seq);
   nameWithSequence.appendSequenceNumber(seq);
-//  shared_ptr<Name> nameWithSequence = make_shared<Name>(m_interestName);
-//  nameWithSequence->appendSequenceNumber(seq);
   //
 
-  // shared_ptr<Interest> interest = make_shared<Interest> ();
   shared_ptr<Interest> interest = make_shared<Interest>();
   interest->setNonce(m_rand->GetValue(0, std::numeric_limits<uint32_t>::max()));
   interest->setName(nameWithSequence);
   time::milliseconds interestLifeTime(m_interestLifeTime.GetMilliSeconds());
   interest->setInterestLifetime(interestLifeTime);
 
-  NS_LOG_INFO ("\nRequesting Interest: \n" << *interest);
-//  NS_LOG_INFO("> Interest for " << seq);
+  // NS_LOG_INFO ("Requesting Interest: \n" << *interest);
+  NS_LOG_INFO("> Interest for " << seq << "\t" << interest->getName());
 
   WillSendOutInterest(seq);
 
   m_transmittedInterests(interest, this, m_face);
   m_appLink->onReceiveInterest(*interest);
 
-  ScheduleNextPacket();
+//  if(isRetx)
+//	  SendPacket();
+//  else
+  	ScheduleNextPacket();
+}
+
+Name
+Consumer::GetRandPrefix(int seq)
+{
+	if(m_seqName.find(seq) != m_seqName.end())
+		return m_seqName.find(seq)->second;
+	// new sequence
+	std::string prefixL1[6]  = {"/Info_0","/Info_1","/Info_2","/Info_3","/Info_4","/Info_5"};
+	std::string prefixL2[6]  = {"/SubInfo_0","/SubInfo_1","/SubInfo_2","/SubInfo_3","/SubInfo_4","/SubInfo_5"};
+	std::string prefixL3[6]  = {"/SubSubInfo_0","/SubSubInfo_1","/SubSubInfo_2","/SubSubInfo_3","/SubSubInfo_4","/SubSubInfo_5"};
+	std::string pre = "/nankai" + prefixL1[static_cast<int>(m_rand->GetValue(0,5))%6]
+								+ prefixL2[static_cast<int>(m_rand->GetValue(0,6))%6]
+								+ prefixL3[static_cast<int>(m_rand->GetValue(0,6))%6];
+	Name tmpName(pre);
+	m_seqName[seq] = tmpName;
+	return tmpName;
 }
 
 ///////////////////////////////////////////////////
@@ -264,19 +287,76 @@ Consumer::OnNack(shared_ptr<const lp::Nack> nack)
               << ", reason: " << nack->getReason());
 }
 
+//void
+//Consumer::OnTimeout(uint32_t sequenceNumber)
+//{
+//  NS_LOG_FUNCTION(sequenceNumber);
+//  // std::cout << Simulator::Now () << ", TO: " << sequenceNumber << ", current RTO: " <<
+//  // m_rtt->RetransmitTimeout ().ToDouble (Time::S) << "s\n";
+//
+//  m_rtt->IncreaseMultiplier(); // Double the next RTO
+//  m_rtt->SentSeq(SequenceNumber32(sequenceNumber),
+//                 1); // make sure to disable RTT calculation for this sample
+//  m_retxSeqs.insert(sequenceNumber);
+//  ScheduleNextPacket();
+//}
+
+//*************************************************************
+// Tong
+void
+Consumer::SetPrefix(string pre)
+{
+	Name tmpName(pre);
+	m_interestName.clear();
+	//m_interestName.set(pre);
+	m_interestName = tmpName;
+}
+
 void
 Consumer::OnTimeout(uint32_t sequenceNumber)
 {
   NS_LOG_FUNCTION(sequenceNumber);
-  // std::cout << Simulator::Now () << ", TO: " << sequenceNumber << ", current RTO: " <<
-  // m_rtt->RetransmitTimeout ().ToDouble (Time::S) << "s\n";
 
-  m_rtt->IncreaseMultiplier(); // Double the next RTO
-  m_rtt->SentSeq(SequenceNumber32(sequenceNumber),
-                 1); // make sure to disable RTT calculation for this sample
-  m_retxSeqs.insert(sequenceNumber);
-  ScheduleNextPacket();
+  // Retranmit this interest or not?
+  if(m_seqRetxCounts[sequenceNumber] < 3)
+  {
+//	  // Name
+//	  shared_ptr<Name> nameWithSequence = make_shared<Name>(m_interestName);
+//	  nameWithSequence->appendSequenceNumber(sequenceNumber);
+//
+//	  //Create an Interest packet
+//	  shared_ptr<Interest> interest = make_shared<Interest>();
+//	  interest->setNonce(m_rand->GetValue(0, std::numeric_limits<uint32_t>::max()));
+//	  interest->setName(*nameWithSequence);
+//	  interest->setInterestLifetime(time::milliseconds::max());
+//
+//	  time::milliseconds interestLifeTime(m_interestLifeTime.GetMilliSeconds());
+//	  interest->setInterestLifetime(interestLifeTime);
+//
+//	  WillSendOutInterest(sequenceNumber);
+//
+//	  m_transmittedInterests(interest, this, m_face);
+//	  m_appLink->onReceiveInterest(*interest);
+//	  ScheduleNextPacket();
+
+	  m_rtt->IncreaseMultiplier(); // Double the next RTO
+	  m_rtt->SentSeq(SequenceNumber32(sequenceNumber),
+			  1); // make sure to disable RTT calculation for this sample
+	  m_retxSeqs.insert(sequenceNumber);
+	  ScheduleNextPacket();
+  }
+  else
+  {
+	  //discard this interest
+	  m_seqRetxCounts.erase(sequenceNumber);   //recording the transmission number of every seq
+	  m_seqFullDelay.erase(sequenceNumber);     //Tracing
+	  m_seqLastDelay.erase(sequenceNumber);    //Tracing
+	  m_seqTimeouts.erase(sequenceNumber);    //record all the packets with send time for timeout
+  }
 }
+//*************************************************************
+
+
 
 void
 Consumer::WillSendOutInterest(uint32_t sequenceNumber)

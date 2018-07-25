@@ -65,6 +65,9 @@ protected:
   std::string
   GetRandomize() const;
 
+//  std::string
+//  GetRandPrefix(int) const;
+
 protected:
   double m_frequency; // Frequency of interest packets (in hertz)
   bool m_firstTime;

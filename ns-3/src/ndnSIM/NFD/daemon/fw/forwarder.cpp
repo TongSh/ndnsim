@@ -50,6 +50,11 @@ Forwarder::Forwarder()
   , m_measurements(m_nameTree)
   , m_strategyChoice(*this)
   , m_csFace(face::makeNullFace(FaceUri("contentstore://")))
+  	,firstTime(true)
+	,countInterestRcv(0)
+	,countInterestSend(0)
+	,countDataRcv(0)
+	,countDataSend(0)
 {
   getFaceTable().addReserved(m_csFace, face::FACEID_CONTENT_STORE);
 
@@ -81,13 +86,77 @@ Forwarder::Forwarder()
 
 Forwarder::~Forwarder() = default;
 
+/** update direction frequently
+ * using  scheduler::schedule()
+ * Tong
+ */
+void
+Forwarder::CountRecord()
+{
+	// 发送记录
+	std::string fileName = "SendRecord/interest_" + std::to_string(m_node->GetId()) +"_Node.csv";
+	std::ofstream fileObj1(fileName,std::ofstream::app);
+	fileObj1<< ns3::Simulator::Now().GetNanoSeconds()<<","<<countInterestSend<<"\n";
+	fileObj1.close();
+
+	fileName = "SendRecord/data_" + std::to_string(m_node->GetId()) +"_Node.csv";
+	std::ofstream fileObj2(fileName,std::ofstream::app);
+	fileObj2<< ns3::Simulator::Now().GetNanoSeconds()<<","<<countDataSend<<"\n";
+	fileObj2.close();
+
+
+	// 接收记录
+	fileName = "ReceiveRecord/interest_" + std::to_string(m_node->GetId()) +"_Node.csv";
+	std::ofstream fileObj3(fileName,std::ofstream::app);
+	fileObj3<< ns3::Simulator::Now().GetNanoSeconds()<<","<<countInterestRcv<<"\n";
+	fileObj3.close();
+
+
+	fileName = "ReceiveRecord/data_" + std::to_string(m_node->GetId()) +"_Node.csv";
+	std::ofstream fileObj4(fileName,std::ofstream::app);
+	fileObj4<< ns3::Simulator::Now().GetNanoSeconds()<<","<<countDataRcv<<"\n";
+	fileObj4.close();
+
+	// 输出 pit size
+	std::string pitFile = "SizeResult/pit_" + std::to_string(m_node->GetId()) +"_Node.csv";
+	std::ofstream PitOut(pitFile,std::ofstream::app);
+	PitOut<< ns3::Simulator::Now().GetNanoSeconds()<<","<<m_pit.size()<<"\n";
+	PitOut.close();
+
+	// output CS size
+	std::string csFile = "SizeResult/cs_" + std::to_string(m_node->GetId()) +"_Node.csv";
+	std::ofstream CsOut(csFile,std::ofstream::app);
+	CsOut<< ns3::Simulator::Now().GetNanoSeconds()<<","<<m_cs.size()<<"\n";
+	CsOut.close();
+
+	// output FIB size
+	std::string fibFile = "SizeResult/fib_" + std::to_string(m_node->GetId()) +"_Node.csv";
+	std::ofstream FibOut(fibFile,std::ofstream::app);
+	FibOut<< ns3::Simulator::Now().GetNanoSeconds()<<","<<m_fib.size()<<"\n";
+	FibOut.close();
+
+	time::nanoseconds roundTime =  time::seconds(50);
+	scheduler::schedule(roundTime,bind(&Forwarder::CountRecord, this));
+}
+
 void
 Forwarder::onIncomingInterest(Face& inFace, const Interest& interest)
 {
 
-	printf("Node[%d] receive from [%d]: pos(%f,%f); velocity(%f,%f)\n",
-			m_node->GetId(),interest.getHopId(),interest.getHopPosx(),
-			interest.getHopPosy(),interest.getHopVelocityX(),interest.getHopVelocityY());
+//	printf("Node[%d] receive from [%d]: pos(%f,%f); velocity(%f,%f)\n",
+//			m_node->GetId(),interest.getHopId(),interest.getHopPosx(),
+//			interest.getHopPosy(),interest.getHopVelocityX(),interest.getHopVelocityY());
+	//************************************************************
+	// @Tong
+	if(inFace.getId() == 256){
+	  if(firstTime){
+		  firstTime = false;
+		  CountRecord();
+	  }
+	  // interest接收记录
+	  countInterestRcv++;
+	}
+	//************************************************************
 
   // receive Interest
   NFD_LOG_DEBUG("onIncomingInterest face=" << inFace.getId() <<
@@ -247,13 +316,20 @@ Forwarder::onOutgoingInterest(const shared_ptr<pit::Entry>& pitEntry, Face& outF
   // insert out-record
   pitEntry->insertOrUpdateOutRecord(outFace, interest);
 
-  ns3::Ptr<ns3::MobilityModel> mobi = m_node->GetObject<ns3::MobilityModel>();
-  const_cast<Interest*>(&interest)->setHopPosx(mobi->GetPosition().x);
-  const_cast<Interest*>(&interest)->setHopPosy(mobi->GetPosition().y);
-  const_cast<Interest*>(&interest)->setHopVelocityX(mobi->GetVelocity().x);
-  const_cast<Interest*>(&interest)->setHopVelocityY(mobi->GetVelocity().y);
-//  const_cast<Interest*>(&interest)->setHopDir(m_node->getDirection());
-  const_cast<Interest*>(&interest)->setHopId(m_node->GetId());
+  	//**************************************************************************************************************
+	// 修改interest包中的字段
+	if(outFace.getId() == 256 || outFace.getId() == 258){
+		ns3::Ptr<ns3::MobilityModel> mobi = m_node->GetObject<ns3::MobilityModel>();
+		const_cast<Interest*>(&interest)->setHopPosx(mobi->GetPosition().x);
+		const_cast<Interest*>(&interest)->setHopPosy(mobi->GetPosition().y);
+		const_cast<Interest*>(&interest)->setHopVelocityX(mobi->GetVelocity().x);
+		const_cast<Interest*>(&interest)->setHopVelocityY(mobi->GetVelocity().y);
+		const_cast<Interest*>(&interest)->setHopId(m_node->GetId());
+
+		// 输出interest发送记录
+		countInterestSend++;
+	}
+    //**************************************************************************************************************
 
   // send Interest
   outFace.sendInterest(interest);
@@ -309,6 +385,8 @@ Forwarder::onInterestFinalize(const shared_ptr<pit::Entry>& pitEntry, bool isSat
 void
 Forwarder::onIncomingData(Face& inFace, const Data& data)
 {
+	if(inFace.getId() == 256)			// 输出data接收记录
+			countDataRcv++;
   // receive Data
   NFD_LOG_DEBUG("onIncomingData face=" << inFace.getId() << " data=" << data.getName());
   data.setTag(make_shared<lp::IncomingFaceIdTag>(inFace.getId()));
@@ -407,6 +485,7 @@ Forwarder::onDataUnsolicited(Face& inFace, const Data& data)
 void
 Forwarder::onOutgoingData(const Data& data, Face& outFace)
 {
+
   if (outFace.getId() == face::INVALID_FACEID) {
     NFD_LOG_WARN("onOutgoingData face=invalid data=" << data.getName());
     return;
@@ -422,6 +501,14 @@ Forwarder::onOutgoingData(const Data& data, Face& outFace)
     // (drop)
     return;
   }
+
+  //****************************************************
+   // netdev
+   if(outFace.getId() == 256){
+ 	  countDataSend++;
+   }
+   //*****************************************************
+
 
   // TODO traffic manager
 
@@ -619,4 +706,91 @@ Forwarder::insertDeadNonceList(pit::Entry& pitEntry, bool isSatisfied,
   }
 }
 
+// 四舍五入
+int
+Forwarder::round_double(double number)
+{
+    return (number > 0.0) ? floor(number + 0.5) : ceil(number - 0.5);
+}
+
+int
+Forwarder::calInterestDelay(const Interest& interest)
+{
+	//==========================================
+	//Position & velocity of last hop
+	double s_posX = interest.getHopPosx();
+	double s_posY = interest.getHopPosy();
+	double s_velocityX = interest.getHopVelocityX();
+	double s_velocityY = interest.getHopVelocityY();
+	//Position & velocity of the current hop
+	ns3::Ptr<ns3::MobilityModel> mobi = m_node->GetObject<ns3::MobilityModel>();
+	double m_PosX = mobi->GetPosition().x;
+	double m_PosY = mobi->GetPosition().y;
+	double m_VelocityX = mobi->GetVelocity().x;
+	double m_VelocityY = mobi->GetVelocity().y;
+
+
+	// distance d
+	const double D = 500;
+	double distance = sqrt((s_posX-m_PosX)*(s_posX-m_PosX)+(s_posY-m_PosY)*(s_posY-m_PosY));
+	if(distance < 1.0)
+		return -1;
+	if(distance > D)
+		return 0;
+
+	// delta time
+	double deltaX = s_posX - m_PosX, deltaY = s_posY - m_PosY, deltaVX = s_velocityX - m_VelocityX, deltaVY = s_velocityY - m_VelocityY;
+	double temp = deltaX*deltaVX + deltaY*deltaVY;
+	double deltaD2 = D * D - distance * distance;
+	double deltaV2 = pow(deltaVX,2) + pow(deltaVY,2);
+	// 两辆车运动状态极其契合
+	if(deltaV2 < 0.1)
+		return 0;
+	double deltaTime = (-temp + sqrt(temp*temp + deltaD2 * deltaV2)) / deltaV2;
+	// 两辆车运动状态极不契合
+	if(deltaTime < 1)
+		return -1;
+
+	// delay n
+	int n = round_double(32 * (exp(-distance/64) + exp(-deltaTime/32)));
+	BOOST_ASSERT(n >= 0);
+	return n;
+}
+
+/** delay-base forward
+ * Forwarder::onOutgoingInterest(const shared_ptr<pit::Entry>& pitEntry, Face& outFace, const Interest& interest)
+ */
+void
+Forwarder::onDelayInterest(const shared_ptr<pit::Entry>& pitEntry
+		  , Face& outFace
+		  , const Interest& interest)
+{
+	// Consumer and Producer should never delay interest
+	int hopCount = 0;
+	auto hoptag = interest.getTag<lp::HopCountTag>();
+	if(hoptag != nullptr)
+			hopCount = *hoptag;
+	if(hopCount == 0 || outFace.getId() == 258){
+		onOutgoingInterest(pitEntry, outFace, interest);
+		return;
+	}
+
+	// calculate the delay
+	int Ndelay = calInterestDelay(interest);
+	if(Ndelay == -1)
+		return;
+
+	ns3::Time delay = ns3::NanoSeconds(Ndelay+4);
+	auto outFacePtr = &outFace;
+	auto interestPtr = make_shared<Interest>(interest);
+	ns3::Simulator::Schedule(delay, &Forwarder::ScheduleOnOutgoingInterest, this, pitEntry, outFacePtr, interestPtr);
+}
+
+void
+Forwarder::ScheduleOnOutgoingInterest(const shared_ptr<pit::Entry>& pitEntry
+		  , Face* outFace
+		  , shared_ptr<Interest> interest)
+{
+	onOutgoingInterest(pitEntry,*outFace,const_cast<const Interest&>(*interest));
+}
 } // namespace nfd

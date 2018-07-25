@@ -95,6 +95,20 @@ Producer::OnInterest(shared_ptr<const Interest> interest)
 {
   App::OnInterest(interest); // tracing inside
 
+  /** How many hops has the interest packet experienced **/
+  int hopCount = 0;
+  using tong::SimpleTag2;
+  typedef SimpleTag2<uint64_t, 0x60000000> HopCountTag;
+  auto hoptag = interest->getTag<HopCountTag>();
+  if(hoptag != nullptr)
+	  hopCount = *hoptag;
+  NS_LOG_INFO("<<<<<interest hop : "<<hopCount);
+  std::string csFile = "HopRecord/hop_" + std::to_string(m_node->GetId()) +"_Node.csv";
+  std::ofstream CsOut(csFile,std::ofstream::app);
+  CsOut<< ns3::Simulator::Now().GetNanoSeconds()<<","<<interest->getName()<<","<<hopCount<<"\n";
+  CsOut.close();
+
+
   NS_LOG_FUNCTION(this << interest);
 
   if (!m_active)
